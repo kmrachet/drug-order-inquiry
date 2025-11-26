@@ -1,0 +1,90 @@
+services:
+  # 1. フロントエンド (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: drug-order-frontend
+    # 開発サーバー(npm start)を起動し続ける設定
+    command: npm start
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # コンテナ内のnode_modulesを優先
+    environment:
+      - WATCHPACK_POLLING=true # ファイル変更検知のため(特にWindows/WSL環境で有効)
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - frontend-network
+
+  # 2. バックエンド (Flask)
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: drug-order-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app # ホットリロード用にローカルのコードをマウント
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=userpassword
+      - DB_NAME=drug_order_db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend-network
+
+  # 3. データベース (MySQL)
+  db:
+    image: mysql:8.4
+    container_name: drug-order-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: drug_order_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306" # ホストから直接DBを確認したい場合に使用
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d # 初期化SQL用
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+  
+  # 4. Webサーバー (Nginx)
+  webserver:
+    image: nginx:1.25
+    container_name: drug-order-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - frontend-network
+      - backend-network
+
+# データの永続化用ボリューム
+volumes:
+  db_data:
+
+# ネットワーク定義
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge
