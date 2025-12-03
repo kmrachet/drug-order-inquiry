@@ -2,3 +2,5 @@ Flask
 flask-cors
 numpy
 mysql-connector-python
+Flask-SQLAlchemy
+Flask-Migrate
