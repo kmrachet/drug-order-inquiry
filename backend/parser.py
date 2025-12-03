@@ -132,8 +132,6 @@ class TelegramParser:
         order_info['daikou_riyousha_info'] = {
             "bangou": self._slice_and_decode(8), # 代行利用者番号
             "name": self._slice_and_decode(20),  # 代行利用者名
-            # (前提条件2参照: サンプル[cite: 3]に基づきカナ名40bを処理)
-            "kana_name_from_sample": self._slice_and_decode(40),
         }
 
         # 麻薬施用者情報1 & 2 (サンプルでは空欄) 
