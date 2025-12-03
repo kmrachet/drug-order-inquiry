@@ -143,42 +143,6 @@ function App() {
             ) : (
               <div className="detail-content">
                 <div className="info-group">
-                  <h3>患者情報</h3>
-                  <div className="info-grid">
-                    <div className="info-item">
-                      <label>氏名</label>
-                      <span>{selectedTelegram.patient_name}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>ID</label>
-                      <span>{selectedTelegram.patient_id}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>住所</label>
-                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_juusho || '-'}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>生年月日</label>
-                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_seinengappi || '-'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="info-group">
-                  <h3>オーダ情報</h3>
-                  <div className="info-grid">
-                    <div className="info-item">
-                      <label>依頼医</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.irai_i_info?.name || '-'}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>診療科</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.order_hakkou_shinryouka_code || '-'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="info-group">
                   <h3>処方項目一覧</h3>
                   <table className="item-table">
                     <thead>
@@ -203,13 +167,72 @@ function App() {
                     </tbody>
                   </table>
                 </div>
-                
-                {/* デバッグ用生データ表示（必要に応じてコメントアウト） */}
-                {/* <div className="raw-json">
-                  <h3>Raw Data</h3>
-                  <pre>{JSON.stringify(selectedTelegram.raw_data, null, 2)}</pre>
-                </div> 
-                */}
+
+                <div className="info-group">
+                  <h3>患者情報</h3>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <label>患者ID</label>
+                      <span>{selectedTelegram.patient_id}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>患者氏名</label>
+                      <span>{selectedTelegram.patient_name}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>生年月日</label>
+                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_seinengappi || '-'}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>住所</label>
+                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_juusho || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="info-group">
+                  <h3>オーダ情報</h3>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <label>オーダ番号</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.bunsho_bangou || '-'}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>オーダ版数</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.bansuu || '-'}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>依頼医ID</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.irai_i_info?.bangou || '-'}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>依頼医氏名</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.irai_i_info?.name || '-'}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>診療科</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.order_hakkou_shinryouka_code || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div v className="info-group">
+                  <h3>取込情報</h3>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <label>取込日時</label>
+                      <span>{formatDate(selectedTelegram.created_at)}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>最終更新日時</label>
+                      <span>{formatDate(selectedTelegram.updated_at)}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>JSON</label>
+                      <pre>{JSON.stringify(selectedTelegram.raw_data, null, 2)}</pre>
+                    </div> 
+                  </div>
+                </div>
               </div>
             )}
           </section>
