@@ -1,5 +1,4 @@
-# 安定版のNode.jsを使用 (軽量なAlpine版)
-FROM node:node:24.11.0-alpine
+FROM node:25.2.1
 
 # 作業ディレクトリの設定
 WORKDIR /app
