@@ -24,7 +24,7 @@ services:
     container_name: drug-order-backend
     restart: always
     ports:
-      - "5000:5000"
+      - "5050:5000"
     volumes:
       - ./backend:/app # ホットリロード用にローカルのコードをマウント
     environment:
