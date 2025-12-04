@@ -96,7 +96,7 @@ def upload_file():
         order_info = content.get('order_info', {})
 
         # 日付情報の抽出
-        order_date_obj = order_info.get('order_sakusei_date', {})
+        order_date_obj = order_info.get('sakusei_datetime', {})
         order_date = order_date_obj.get('date') if isinstance(order_date_obj, dict) else None
 
         # 4. モデル作成と保存
@@ -104,10 +104,10 @@ def upload_file():
         cleaned_data = clean_numpy_data(parsed_data)
 
         new_telegram = Telegram(
-            patient_id=patient_info.get('kanja_bangou'),
-            patient_name=patient_info.get('kanja_kanji_shimei'),
+            patient_id=patient_info.get('id'),
+            patient_name=patient_info.get('kanji_name'),
             order_date=order_date,
-            system_code=common.get('send_saki_system_code'),
+            system_code=common.get('destination_system_code'),
             raw_data=cleaned_data
         )
 

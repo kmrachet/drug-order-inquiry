@@ -43,20 +43,24 @@ class TelegramParser:
         共通部 (64バイト) を解析 [cite: 93, 94]
         """
         common = {
-            "denbun_shubetsu": self._slice_and_decode(2),       # 電文種別
-            "record_keizoku": self._slice_and_decode(1),       # レコード継続指示
-            "send_saki_system_code": self._slice_and_decode(2),# 送信先システムコード
-            "send_moto_system_code": self._slice_and_decode(2),# 発信元システムコード
-            "shori_date": self._slice_and_decode(8),           # 処理年月日
-            "shori_time": self._slice_and_decode(6),           # 処理時刻
-            "tanmatsu_mei": self._slice_and_decode(8),         # 端末名
-            "riyousha_bangou": self._slice_and_decode(8),      # 利用者番号
-            "shori_kubun": self._slice_and_decode(2),          # 処理区分
-            "outou_shubetsu": self._slice_and_decode(2),       # 応答種別
-            "denbun_chou": self._slice_and_decode(6),          # 電文長
-            "error_code": self._slice_and_decode(5),           # エラーコード
-            "yobi": self._slice_and_decode(12),                # 予備
+            "message_type": self._slice_and_decode(2),            # 05 電文種別
+            "record_continuation": self._slice_and_decode(1),     # 05 レコード継続指示
+            "destination_system_code": self._slice_and_decode(2), # 05 送信先システムコード
+            "source_system_code": self._slice_and_decode(2),      # 05 発信元システムコード
         }
+        # --- 05 処理情報 ---
+        common["processing_info"] = {
+            "date": self._slice_and_decode(8), # 07 処理年月日
+            "time": self._slice_and_decode(6), # 07 処理時刻
+        }
+        common["client_name"] = self._slice_and_decode(8)      # 05 端末名
+        common["d_id"] = self._slice_and_decode(8)             # 05 利用者番号
+        common["processing_class"] = self._slice_and_decode(2) # 05 処理区分
+        common["response_type"] = self._slice_and_decode(2)    # 05 応答種別
+        common["message_length"] = self._slice_and_decode(6)   # 05 電文長
+        common["error_code"] = self._slice_and_decode(5)       # 05 エラーコード
+        common["reserve"] = self._slice_and_decode(12)         # 05 予備
+
         return common
 
     def _parse_content_part(self):
@@ -65,170 +69,179 @@ class TelegramParser:
         """
         content = {}
 
-        # --- 患者情報 (Patient Info)  ---
+        # --- 05 患者情報 ---
         content['patient_info'] = {
-            "kanja_bangou": self._slice_and_decode(10),       # 患者番号
-            "kanja_kanji_shimei": self._slice_and_decode(30), # 患者漢字氏名
-            "kanja_kana_shimei": self._slice_and_decode(60),  # 患者カナ氏名
-            "kanja_seibetsu": self._slice_and_decode(1),      # 患者性別
-            "kanja_seinengappi": self._slice_and_decode(8),   # 患者生年月日
-            "yuubin_bangou_1": self._slice_and_decode(3),    # 郵便番号1
-            "yuubin_bangou_2": self._slice_and_decode(4),    # 郵便番号2
-            "kanja_juusho": self._slice_and_decode(100),     # 患者住所
-            "denwa_bangou": self._slice_and_decode(15),      # 電話番号
+            "id": self._slice_and_decode(10),           # 07 患者番号 / 患者ID
+            "kanji_name": self._slice_and_decode(30),   # 07 患者漢字氏名
+            "kana_name": self._slice_and_decode(60),    # 07 患者カナ氏名
+            "sex": self._slice_and_decode(1),           # 07 患者性別
+            "birthdate": self._slice_and_decode(8),     # 07 患者生年月日
+            "postal_code_1": self._slice_and_decode(3), # 07 郵便番号1
+            "postal_code_2": self._slice_and_decode(4), # 07 郵便番号2
+            "address": self._slice_and_decode(100),     # 07 患者住所
+            "phone_number": self._slice_and_decode(15), # 07 電話番号
         }
 
-        # --- 入院情報 (Inpatient Info)  ---
+        # --- 05 入院情報 ---
         content['inpatient_info'] = {
-            "nyuugai_joutai": self._slice_and_decode(1),        # 入外状態
-            "nyuuin_shinryouka_code": self._slice_and_decode(3),# 入院診療科コード
-            "nyuuin_byoutou_code": self._slice_and_decode(3),   # 入院中病棟コード
-            "nyuuin_heya_code": self._slice_and_decode(5),      # 入院中部屋コード
-            "nyuuin_bed_code": self._slice_and_decode(2),       # 入院中ベッドコード
+            "status": self._slice_and_decode(1),    # 07 入外状態
+            "dept_code": self._slice_and_decode(3), # 07 入院診療科コード
+            "ward_code": self._slice_and_decode(3), # 07 入院中病棟コード
+            "room_code": self._slice_and_decode(5), # 07 入院中部屋コード
+            "bed_code": self._slice_and_decode(2),  # 07 入院中ベッドコード
         }
 
-        # --- オーダ情報 (Order Info) [cite: 94, 99] ---
+        # --- 05 オーダ情報 ---
         order_info = {
-            "bunsho_shubetsu": self._slice_and_decode(1),   # 文書種別
-            "bunsho_bangou": self._slice_and_decode(30),  # 文書番号
-            "bansuu": self._slice_and_decode(2),          # 版数
-            "oya_bunsho_bangou": self._slice_and_decode(30), # 親文書番号
-            "order_bangou": self._slice_and_decode(8),    # オーダ番号
+            "doc_type": self._slice_and_decode(1),       # 07 文書種別
+            "doc_id": self._slice_and_decode(30),        # 07 文書番号
+            "version": self._slice_and_decode(2),        # 07 版数
+            "parent_doc_id": self._slice_and_decode(30), # 07 親文書番号
+            "order_id": self._slice_and_decode(8),       # 07 オーダ番号
         }
 
-        # 関連オーダ番号情報 (前提条件2参照: 1回固定で処理) 
-        order_info['kanren_order_info'] = [
-            {
-                "sakusei_date": self._slice_and_decode(8), # 関連オーダ作成日
-                "order_bangou": self._slice_and_decode(8), # 関連オーダ番号
-            }
-        ]
+        # 07 関連オーダ番号情報
+        order_info['related_order_info'] = {
+                "date": self._slice_and_decode(8), # 09 関連オーダ作成日
+                "id": self._slice_and_decode(8),   # 09 関連オーダ番号
+        }
         
-        # 実施日時 
-        order_info['jisshi_nichiji'] = {
-            "date": self._slice_and_decode(8), # 実施日付
-            "time": self._slice_and_decode(6), # 実施時間
+        # 07 実施日時 
+        order_info['jisshi_datetime'] = {
+            "date": self._slice_and_decode(8), # 09 実施日付
+            "time": self._slice_and_decode(6), # 09 実施時間
         }
 
-        # オーダ作成日 
-        order_info['order_sakusei_date'] = {
-            "date": self._slice_and_decode(8), # オーダ日付
-            "time": self._slice_and_decode(6), # オーダ時間
+        # 07 オーダ作成日 
+        order_info['sakusei_datetime'] = {
+            "date": self._slice_and_decode(8), # 09 オーダ日付
+            "time": self._slice_and_decode(6), # 09 オーダ時間
         }
-        order_info['yakuhiki_ken_bangou'] = self._slice_and_decode(8)   # 薬引換券番号
-        order_info['nyuugai_kubun'] = self._slice_and_decode(1)         # 入外区分
-        order_info['order_hakkou_shinryouka_code'] = self._slice_and_decode(3) # オーダ発行診療科コード
-        order_info['order_hakkou_byoutou_code'] = self._slice_and_decode(3) # オーダ発行病棟コード
-        order_info['denpyou_code'] = self._slice_and_decode(4)         # 伝票コード
-        order_info['denpyou_meishou'] = self._slice_and_decode(50)     # 伝票名称
+        order_info['hikikaeken_no'] = self._slice_and_decode(8)          # 07 薬引換券番号
+        order_info['inpatient_status'] = self._slice_and_decode(1)       # 07 入外区分
+        order_info['hakkou_dept_code'] = self._slice_and_decode(3) # 07 オーダ発行診療科コード
+        order_info['hakkou_ward_code'] = self._slice_and_decode(3) # 07 オーダ発行病棟コード
+        order_info['denpyo_code'] = self._slice_and_decode(4)            # 07 伝票コード
+        order_info['denpyo_name'] = self._slice_and_decode(50)           # 07 伝票名称
 
-        # 依頼医情報 
-        order_info['irai_i_info'] = {
-            "bangou": self._slice_and_decode(8),     # 依頼医番号
-            "name": self._slice_and_decode(20),      # 依頼医名
-            "kana_name": self._slice_and_decode(40), # 依頼医カナ名
+        # 07 依頼医情報 
+        order_info['doctor_info'] = {
+            "d_id": self._slice_and_decode(8),        # 09 依頼医番号
+            "kanji_name": self._slice_and_decode(20), # 09 依頼医名
+            "kana_name": self._slice_and_decode(40),  # 09 依頼医カナ名
         }
-        # 代行利用者情報 
-        order_info['daikou_riyousha_info'] = {
-            "bangou": self._slice_and_decode(8), # 代行利用者番号
-            "name": self._slice_and_decode(20),  # 代行利用者名
+        # 07 代行利用者情報 
+        order_info['daikoh_info'] = {
+            "d_id": self._slice_and_decode(8),        # 09 代行利用者番号
+            "kanji_name": self._slice_and_decode(20), # 09 代行利用者名
         }
 
-        # 麻薬施用者情報1 & 2 (サンプルでは空欄) 
-        order_info['mayaku_shiyousha_1'] = {
-            "bangou": self._slice_and_decode(10),
-            "kaishi_date": self._slice_and_decode(8),
-            "shuuryou_date": self._slice_and_decode(8),
+        # 07 麻薬施用者情報1
+        order_info['mayaku_shiyosha_1'] = {
+            "id": self._slice_and_decode(10),        # 09 麻薬施用者番号1
+            "start_date": self._slice_and_decode(8), # 09 開始日
+            "end_date": self._slice_and_decode(8),   # 09 終了日
         }
-        order_info['mayaku_shiyousha_2'] = {
-            "bangou": self._slice_and_decode(10),
-            "kaishi_date": self._slice_and_decode(8),
-            "shuuryou_date": self._slice_and_decode(8),
+
+        # 07 麻薬施用者情報2
+        order_info['mayaku_shiyosha_2'] = {
+            "id": self._slice_and_decode(10),        # 09 麻薬施用者番号2
+            "start_date": self._slice_and_decode(8), # 09 開始日
+            "end_date": self._slice_and_decode(8),   # 09 終了日
         }
+
         content['order_info'] = order_info
 
-        # --- 患者プロファイル情報 (Profile Info)  ---
-        profile_info = {}
-        profile_info['shinchou'] = { # 身長
-            "value": self._slice_and_decode(11), # 身長値
-            "date": self._slice_and_decode(8),  # 身長計測日
+        # --- 05 患者プロファイル情報 ---
+        patient_profile = {}
+
+        # 07 身長
+        patient_profile['height'] = {
+            "value": self._slice_and_decode(11), # 09 身長値
+            "date": self._slice_and_decode(8),   # 09 身長計測日
         }
-        profile_info['taijuu'] = { # 体重
-            "value": self._slice_and_decode(11), # 体重値
-            "date": self._slice_and_decode(8),  # 体重計測日
+        # 07 体重
+        patient_profile['weight'] = {
+            "value": self._slice_and_decode(11), # 09 体重値
+            "date": self._slice_and_decode(8),   # 09 体重計測日
         }
-        profile_info['taihyoumenseki'] = { # 体表面積
-            "value": self._slice_and_decode(11), # 体表面積値
+        # 07 体表面積 body surface area
+        patient_profile['bsa'] = {
+            "value": self._slice_and_decode(11), # 09 体表面積値
         }
 
-        # プロファイル情報群 (可変長)
-        profile_count_str = self._slice_and_decode(3) # プロファイル数
-        profile_count = int(profile_count_str) if profile_count_str is not np.nan else 0
+        # 07 プロファイル情報
+        profile_count_str = self._slice_and_decode(3) # 09 プロファイル数
+        profile_count = int(profile_count_str) if profile_count_str is not np.nan else 0 # 数値化
+        patient_profile['profile_info'] = {
+            "profile_count": profile_count
+        }
 
-        profile_info['profile_count'] = profile_count
-        profile_info['profile_group'] = []
-
-        for i in range(profile_count):
-            profile_info['profile_group'].append({
-                "code": self._slice_and_decode(10), # プロファイルコード
-                "name": self._slice_and_decode(50), # プロファイル名称
-                "data": self._slice_and_decode(500),# プロファイルデータ
+        ## 09 プロファイル情報群 (可変長)
+        patient_profile['profile_info']['profile_group'] = []
+        for _ in range(profile_count):
+            patient_profile['profile_info']['profile_group'].append({
+                "code": self._slice_and_decode(10),  # 11 プロファイルコード
+                "name": self._slice_and_decode(50),  # 11 プロファイル名称
+                "data": self._slice_and_decode(500), # 11 プロファイルデータ
             })
 
-        content['profile_info'] = profile_info
+        content['patient_profile'] = patient_profile
 
-        # --- レジメン情報 (Regimen Info) (サンプルでは空欄) [cite: 99, 105] ---
+        # --- 05 レジメン情報 ---
         content['regimen_info'] = {
-            "code": self._slice_and_decode(8),
-            "name": self._slice_and_decode(50),
-            "course_suu": self._slice_and_decode(3),
-            "tekika_jun": self._slice_and_decode(4),
-            "tekiyou_kaishi_date": self._slice_and_decode(14),
-            "shintai_info": {
-                "shinchou": self._slice_and_decode(11),
-                "taijuu": self._slice_and_decode(11),
-                "taihyoumenseki": self._slice_and_decode(11),
+            "code": self._slice_and_decode(8),         # 07 レジメンコード
+            "name": self._slice_and_decode(50),        # 07 レジメン名
+            "course_count": self._slice_and_decode(3), # 07 コース数
+            "drip_order": self._slice_and_decode(4),   # 07 滴下順
+            "start_date": self._slice_and_decode(14),  # 07 レジメン適用開始日
+            # 07 レジメン適用時の身体情報
+            "body_info": { 
+                "height": self._slice_and_decode(11), # 09 身長
+                "weight": self._slice_and_decode(11), # 09 体重
+                "bsa": self._slice_and_decode(11),    # 09 体表面積
             }
         }
 
-        # --- 項目情報 (Item Info) (可変長)  ---
-        item_count_str = self._slice_and_decode(4) # 項目数
-        item_count = int(item_count_str) if item_count_str is not np.nan else 0
+        # --- 05 項目数情報 ---
+        item_count_str = self._slice_and_decode(4) # 07 項目数
+        item_count = int(item_count_str) if item_count_str is not np.nan else 0 # 数値化
+        content['item_count_info'] = {"item_count": item_count}
 
-        item_info = {
-            "item_count": item_count,
-            "item_group": []
-        }
-
+        # --- 05 項目情報群 ---
+        item_group = {} 
+        # 07 項目情報 (可変長)
+        item_group['item_info'] = []
         for _ in range(item_count):
             item = {
-                "zokusai": self._slice_and_decode(3),          # 項目属性
-                "code": self._slice_and_decode(8),             # 項目コード
-                "renketsu_code": self._slice_and_decode(8),    # 連結項目コード
-                "name": self._slice_and_decode(50),            # 項目名称
-                "suuryou": self._slice_and_decode(11),         # 数量
-                "sentaku_tani_flag": self._slice_and_decode(1),# 選択単位フラグ
-                "sentaku_tani_code": self._slice_and_decode(3),# 選択単位コード
-                "sentaku_tani_name": self._slice_and_decode(4),# 選択単位名称
-                "kyokuya_flag": self._slice_and_decode(1),     # 極屋フラグ
-                "koumoku_gyou_date": self._slice_and_decode(8),# 項目行日付
-                "koumoku_gyou_time": self._slice_and_decode(6),# 項目行時間
-                "code_group": { # コードグループ
-                    "buppin_code": self._slice_and_decode(9),
-                    "jan_code": self._slice_and_decode(13),
-                    "yakuhin_code_kouseishou": self._slice_and_decode(12),
-                    "hot_code": self._slice_and_decode(13),
-                    "receipt_densan_code": self._slice_and_decode(12),
-                    "jlac10_code": self._slice_and_decode(17),
-                    "hyoujun_code_yj": self._slice_and_decode(20),
-                    "butsuryuu_code": self._slice_and_decode(20),
-                    "order_kanri_bangou": self._slice_and_decode(14),
-                    "iji_kanri_bangou": self._slice_and_decode(10),
+                "attribute": self._slice_and_decode(3),         # 09 項目属性
+                "code": self._slice_and_decode(8),              # 09 項目コード
+                "linked_item_code": self._slice_and_decode(8),  # 09 連結項目コード
+                "name": self._slice_and_decode(50),             # 09 項目名称
+                "quantity": self._slice_and_decode(11),        # 09 数量
+                "unit_flag": self._slice_and_decode(1),         # 09 選択単位フラグ
+                "unit_code": self._slice_and_decode(3),         # 09 選択単位コード
+                "unit_name": self._slice_and_decode(4),         # 09 選択単位名称
+                "max_dose_flag": self._slice_and_decode(1),     # 09 極量フラグ
+                "item_row_date": self._slice_and_decode(8),     # 09 項目行日付
+                "item_row_time": self._slice_and_decode(6),     # 09 項目行時間
+                ## 09 コードグループ
+                "code_group": {
+                    "buppin_code": self._slice_and_decode(9),     # 11 物品コード
+                    "jan_code": self._slice_and_decode(13),       # 11 物品JANコード
+                    "iyakuhin_code": self._slice_and_decode(12),  # 11 薬品コード(厚生省コード) / 薬価基準収載医薬品コード
+                    "hot_code": self._slice_and_decode(13),       # 11 HOTコード
+                    "receden_code": self._slice_and_decode(12),   # 11 レセプト電算コード
+                    "jlac10_code": self._slice_and_decode(17),    # 11 JLAC10コード
+                    "yj_code": self._slice_and_decode(20),        # 11 標準コード(YJコード)
+                    "logi_code": self._slice_and_decode(20),      # 11 物流コード
+                    "order_kanri_no": self._slice_and_decode(14), # 11 オーダ管理番号
+                    "iji_kanri_no": self._slice_and_decode(10),   # 11 医事管理番号
                 }
             }
-            item_info['item_group'].append(item)
+            item_group['item_info'].append(item)
 
-        content['item_info'] = item_info
+        content['item_group'] = item_group
 
         return content
 
@@ -263,10 +276,10 @@ class TelegramParser:
             common_part = self._parse_common_part()
 
             # --- 2. Validation (電文形式の検証) ---
-            if common_part.get('denbun_shubetsu') != 'II' or \
-               common_part.get('record_keizoku') != 'E' or \
-               common_part.get('send_saki_system_code') != 'HS' or \
-               common_part.get('send_moto_system_code') != 'XX':
+            if common_part.get('message_type') != 'II' or \
+               common_part.get('record_continuation') != 'E' or \
+               common_part.get('destination_system_code') != 'HS' or \
+               common_part.get('source_system_code') != 'XX':
                 # 電文の形式を満たしていない場合、エラーを発報
                 raise ValueError(
                     "電文ヘッダーの検証に失敗しました。必須項目 (II, E, HS, XX) "

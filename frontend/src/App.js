@@ -47,10 +47,8 @@ function App() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      // アップロード成功後に一覧を再取得し、ファイル選択をリセット
       await fetchTelegrams();
       setFile(null);
-      // input要素のリセットはReactの制御外で行うか、keyを変える手法があるが今回は簡易的に済ます
       alert("アップロードと解析が完了しました。");
     } catch (err) {
       console.error("Upload error:", err);
@@ -99,7 +97,7 @@ function App() {
               type="file" 
               onChange={handleFileChange} 
               disabled={loading}
-              accept=".txt,.dat,.bin" // 拡張子は運用に合わせて調整
+              accept=".txt,.dat,.bin" 
             />
             <button type="submit" disabled={!file || loading}>
               {loading ? '処理中...' : '解析・保存'}
@@ -142,6 +140,8 @@ function App() {
               <div className="placeholder">左のリストから選択してください</div>
             ) : (
               <div className="detail-content">
+                
+                {/* 処方項目一覧 */}
                 <div className="info-group">
                   <h3>処方項目一覧</h3>
                   <table className="item-table">
@@ -154,11 +154,11 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedTelegram.raw_data?.content?.item_info?.item_group?.map((item, index) => (
+                      {selectedTelegram.raw_data?.content?.item_group?.item_info?.map((item, index) => (
                         <tr key={index}>
                           <td>{item.name}</td>
-                          <td>{item.suuryou}</td>
-                          <td>{item.sentaku_tani_name}</td>
+                          <td>{item.quantity}</td>
+                          <td>{item.unit_name}</td>
                           <td>{item.code}</td>
                         </tr>
                       )) || (
@@ -168,6 +168,7 @@ function App() {
                   </table>
                 </div>
 
+                {/* 患者情報 */}
                 <div className="info-group">
                   <h3>患者情報</h3>
                   <div className="info-grid">
@@ -181,42 +182,43 @@ function App() {
                     </div>
                     <div className="info-item">
                       <label>生年月日</label>
-                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_seinengappi || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.patient_info?.birthdate || '-'}</span>
                     </div>
                     <div className="info-item">
                       <label>住所</label>
-                      <span>{selectedTelegram.raw_data?.content?.patient_info?.kanja_juusho || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.patient_info?.address || '-'}</span>
                     </div>
                   </div>
                 </div>
 
+                {/* オーダ情報 */}
                 <div className="info-group">
                   <h3>オーダ情報</h3>
                   <div className="info-grid">
                     <div className="info-item">
                       <label>オーダ番号</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.bunsho_bangou || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.order_id || '-'}</span>
                     </div>
                     <div className="info-item">
-                      <label>オーダ版数</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.bansuu || '-'}</span>
+                      <label>版数</label>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.version || '-'}</span>
                     </div>
                     <div className="info-item">
                       <label>依頼医ID</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.irai_i_info?.bangou || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.doctor_info?.d_id || '-'}</span>
                     </div>
                     <div className="info-item">
                       <label>依頼医氏名</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.irai_i_info?.name || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.doctor_info?.kanji_name || '-'}</span>
                     </div>
                     <div className="info-item">
                       <label>診療科</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.order_hakkou_shinryouka_code || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.hakkou_dept_code || '-'}</span>
                     </div>
                   </div>
                 </div>
 
-                <div v className="info-group">
+                <div className="info-group">
                   <h3>取込情報</h3>
                   <div className="info-grid">
                     <div className="info-item">
@@ -229,6 +231,7 @@ function App() {
                     </div>
                     <div className="info-item">
                       <label>JSON</label>
+                      {/* JSON表示のみ、詳細を隠してボタンで展開しても良いかも */}
                       <pre>{JSON.stringify(selectedTelegram.raw_data, null, 2)}</pre>
                     </div> 
                   </div>
