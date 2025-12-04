@@ -15,7 +15,7 @@ class Telegram(db.Model):
     patient_id = Column(String(20), index=True, comment='患者番号')
     patient_name = Column(String(100), comment='患者漢字氏名')
     order_date = Column(String(20), comment='オーダ日付(YYYYMMDD)')
-    
+
     # 電文種別などのヘッダー情報（必要に応じて追加）
     system_code = Column(String(10), comment='送信先システムコード')
 

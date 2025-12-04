@@ -109,7 +109,7 @@ class TelegramParser:
             "date": self._slice_and_decode(8), # 実施日付
             "time": self._slice_and_decode(6), # 実施時間
         }
-        
+
         # オーダ作成日 
         order_info['order_sakusei_date'] = {
             "date": self._slice_and_decode(8), # オーダ日付
@@ -121,7 +121,7 @@ class TelegramParser:
         order_info['order_hakkou_byoutou_code'] = self._slice_and_decode(3) # オーダ発行病棟コード
         order_info['denpyou_code'] = self._slice_and_decode(4)         # 伝票コード
         order_info['denpyou_meishou'] = self._slice_and_decode(50)     # 伝票名称
-        
+
         # 依頼医情報 
         order_info['irai_i_info'] = {
             "bangou": self._slice_and_decode(8),     # 依頼医番号
@@ -160,21 +160,21 @@ class TelegramParser:
         profile_info['taihyoumenseki'] = { # 体表面積
             "value": self._slice_and_decode(11), # 体表面積値
         }
-        
+
         # プロファイル情報群 (可変長)
         profile_count_str = self._slice_and_decode(3) # プロファイル数
         profile_count = int(profile_count_str) if profile_count_str is not np.nan else 0
-        
+
         profile_info['profile_count'] = profile_count
         profile_info['profile_group'] = []
-        
+
         for i in range(profile_count):
             profile_info['profile_group'].append({
                 "code": self._slice_and_decode(10), # プロファイルコード
                 "name": self._slice_and_decode(50), # プロファイル名称
                 "data": self._slice_and_decode(500),# プロファイルデータ
             })
-        
+
         content['profile_info'] = profile_info
 
         # --- レジメン情報 (Regimen Info) (サンプルでは空欄) [cite: 99, 105] ---
@@ -194,7 +194,7 @@ class TelegramParser:
         # --- 項目情報 (Item Info) (可変長)  ---
         item_count_str = self._slice_and_decode(4) # 項目数
         item_count = int(item_count_str) if item_count_str is not np.nan else 0
-        
+
         item_info = {
             "item_count": item_count,
             "item_group": []
@@ -227,18 +227,18 @@ class TelegramParser:
                 }
             }
             item_info['item_group'].append(item)
-        
+
         content['item_info'] = item_info
-        
+
         return content
 
     def parse(self):
         """
         ファイルパスから電文を読み込み、解析を実行する。
-        
+
         Returns:
             DotDict: 解析された電文データ。
-        
+
         Raises:
             FileNotFoundError: ファイルが見つからない場合。
             ValueError: 解析エラーや検証エラーが発生した場合。
@@ -257,11 +257,11 @@ class TelegramParser:
             raise ValueError("ファイルが空です。")
 
         self.offset = 0 # オフセットをリセット
-        
+
         try:
             # --- 1. 共通部 (Common Part) ---
             common_part = self._parse_common_part()
-            
+
             # --- 2. Validation (電文形式の検証) ---
             if common_part.get('denbun_shubetsu') != 'II' or \
                common_part.get('record_keizoku') != 'E' or \
@@ -275,7 +275,7 @@ class TelegramParser:
 
             # --- 3. 内容部 (Content Part) ---
             content_part = self._parse_content_part()
-            
+
             # --- 4. 終端確認 (オプション) ---
             # (前提条件3参照: 終端チェックは省略)
             if self.offset < len(self.raw_bytes):
@@ -288,7 +288,7 @@ class TelegramParser:
                 "common": common_part,
                 "content": content_part
             }
-            
+
             return DotDict(full_telegram)
 
         except Exception as e:

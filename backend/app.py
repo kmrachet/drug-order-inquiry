@@ -55,7 +55,7 @@ def clean_numpy_data(data):
     """
     # 1. まずNumpy型を標準型へダンプ (この時点で np.nan は "NaN" という文字列リテラルになる)
     json_str = json.dumps(data, cls=NumpyJSONEncoder)
-    
+
     # 2. JSON文字列を辞書に戻す際、parse_constantフックを使って "NaN" を None に変換する
     return json.loads(json_str, parse_constant=lambda x: None if x == 'NaN' else float(x))
 
@@ -72,7 +72,7 @@ def upload_file():
     """
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
@@ -91,10 +91,10 @@ def upload_file():
         # 3. 必要な情報を抽出 (DotDictアクセス)
         content = parsed_data.get('content', {})
         common = parsed_data.get('common', {})
-        
+
         patient_info = content.get('patient_info', {})
         order_info = content.get('order_info', {})
-        
+
         # 日付情報の抽出
         order_date_obj = order_info.get('order_sakusei_date', {})
         order_date = order_date_obj.get('date') if isinstance(order_date_obj, dict) else None
@@ -136,7 +136,7 @@ def get_telegrams():
     try:
         # 作成日時の降順で取得
         telegrams = Telegram.query.order_by(Telegram.created_at.desc()).all()
-        
+
         # 一覧用に軽量なデータを返す
         results = []
         for t in telegrams:
@@ -147,7 +147,7 @@ def get_telegrams():
                 "order_date": t.order_date,
                 "created_at": t.created_at
             })
-        
+
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -161,10 +161,10 @@ def get_telegram_detail(telegram_id):
         telegram = db.session.get(Telegram, telegram_id)
         if not telegram:
              return jsonify({"error": "Not found"}), 404
-        
+
         # to_dict() ヘルパーを使用
         return jsonify(telegram.to_dict())
-            
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
