@@ -197,7 +197,7 @@ function App() {
                   <div className="info-grid">
                     <div className="info-item">
                       <label>オーダ番号</label>
-                      <span>{selectedTelegram.raw_data?.content?.order_info?.order_id || '-'}</span>
+                      <span>{selectedTelegram.raw_data?.content?.order_info?.number || '-'}</span>
                     </div>
                     <div className="info-item">
                       <label>版数</label>

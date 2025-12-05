@@ -97,13 +97,13 @@ class TelegramParser:
             "doc_id": self._slice_and_decode(30),        # 07 文書番号
             "version": self._slice_and_decode(2),        # 07 版数
             "parent_doc_id": self._slice_and_decode(30), # 07 親文書番号
-            "order_id": self._slice_and_decode(8),       # 07 オーダ番号
+            "number": self._slice_and_decode(8),         # 07 オーダ番号
         }
 
         # 07 関連オーダ番号情報
         order_info['related_order_info'] = {
                 "date": self._slice_and_decode(8), # 09 関連オーダ作成日
-                "id": self._slice_and_decode(8),   # 09 関連オーダ番号
+                "number": self._slice_and_decode(8),   # 09 関連オーダ番号
         }
         
         # 07 実施日時 
