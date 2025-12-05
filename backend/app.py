@@ -104,10 +104,12 @@ def upload_file():
         cleaned_data = clean_numpy_data(parsed_data)
 
         new_telegram = Telegram(
+            id_=order_info.get('doc_id'),
             patient_id=patient_info.get('id'),
             patient_name=patient_info.get('kanji_name'),
+            order_number=order_info.get('number'),
+            order_version=order_info.get('version'),
             order_date=order_date,
-            system_code=common.get('destination_system_code'),
             raw_data=cleaned_data
         )
 
@@ -144,6 +146,8 @@ def get_telegrams():
                 "id": t.id_,
                 "patient_id": t.patient_id,
                 "patient_name": t.patient_name,
+                "order_number": t.order_number,
+                "order_version": t.order_version,
                 "order_date": t.order_date,
                 "created_at": t.created_at
             })
@@ -152,7 +156,7 @@ def get_telegrams():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/telegrams/<int:telegram_id>', methods=['GET'])
+@app.route('/api/telegrams/<string:telegram_id>', methods=['GET'])
 def get_telegram_detail(telegram_id):
     """
     特定の電文の詳細を取得する
