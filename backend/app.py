@@ -116,7 +116,7 @@ def upload_file():
 
         return jsonify({
             "message": "File parsed and saved successfully",
-            "id": new_telegram.id,
+            "id": new_telegram.id_,
             "patient_name": new_telegram.patient_name
         }), 201
 
@@ -141,7 +141,7 @@ def get_telegrams():
         results = []
         for t in telegrams:
             results.append({
-                "id": t.id,
+                "id": t.id_,
                 "patient_id": t.patient_id,
                 "patient_name": t.patient_name,
                 "order_date": t.order_date,

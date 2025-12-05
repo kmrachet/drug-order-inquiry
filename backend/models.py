@@ -9,7 +9,7 @@ class Telegram(db.Model):
     __tablename__ = 'telegrams'
 
     # 管理用ID
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id_ = Column(Integer, primary_key=True, autoincrement=True)
 
     # 検索用主要カラム (parserの抽出結果からapp.pyでセットされる)
     patient_id = Column(String(20), index=True, comment='Patient ID')
@@ -25,10 +25,14 @@ class Telegram(db.Model):
     created_at = Column(DateTime, default=datetime.now, comment='Created At')
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, comment='Updated At')
 
+    # Pythonの予約語id()と衝突しないようにするためのgetter
+    def get_id(self):
+        return self.id_
+
     def to_dict(self):
         """APIレスポンス用辞書変換"""
         return {
-            'id': self.id,
+            'id': self.id_,
             'patient_id': self.patient_id,
             'patient_name': self.patient_name,
             'order_date': self.order_date,
