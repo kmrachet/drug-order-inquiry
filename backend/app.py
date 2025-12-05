@@ -88,7 +88,7 @@ def upload_file():
         parser = TelegramParser(temp_path, encoding='cp932')
         parsed_data = parser.parse()
 
-        # 3. 必要な情報を抽出 (DotDictアクセス)
+        # 3. 必要な情報を抽出
         content = parsed_data.get('content', {})
         common = parsed_data.get('common', {})
 

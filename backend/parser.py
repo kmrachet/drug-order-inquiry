@@ -1,5 +1,4 @@
 import numpy as np
-from dotdict import DotDict
 
 class TelegramParser:
     """
@@ -250,7 +249,7 @@ class TelegramParser:
         ファイルパスから電文を読み込み、解析を実行する。
 
         Returns:
-            DotDict: 解析された電文データ。
+            dict: 解析された電文データ。
 
         Raises:
             FileNotFoundError: ファイルが見つからない場合。
@@ -296,13 +295,13 @@ class TelegramParser:
                 print(f"警告: {remaining} バイトがファイルの終端に残っていますが、"
                       "PDFレイアウトに従い解析を終了しました。")
 
-            # --- 5. 結合と DotDict への変換 ---
+            # --- 5. 結合 ---
             full_telegram = {
                 "common": common_part,
                 "content": content_part
             }
 
-            return DotDict(full_telegram)
+            return full_telegram
 
         except Exception as e:
             print(f"解析エラー: オフセット {self.offset} 付近で問題が発生しました。")
