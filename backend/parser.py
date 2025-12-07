@@ -2,8 +2,7 @@ import numpy as np
 
 class TelegramParser:
     """
-    HOPE LifeMark-HX (02 注射オーダ依頼電文) の
-    固定長 + 可変長電文を解析するパーサー。
+    注射オーダ依頼電文)の電文を解析するパーサー。
     """
     def __init__(self, filepath, encoding='cp932'):
         self.filepath = filepath
@@ -293,7 +292,7 @@ class TelegramParser:
             if self.offset < len(self.raw_bytes):
                 remaining = len(self.raw_bytes) - self.offset
                 print(f"警告: {remaining} バイトがファイルの終端に残っていますが、"
-                      "PDFレイアウトに従い解析を終了しました。")
+                      "電文仕様に従い解析を終了しました。")
 
             # --- 5. 結合 ---
             full_telegram = {
