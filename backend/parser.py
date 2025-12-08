@@ -216,7 +216,7 @@ class TelegramParser:
                 "code": self._slice_and_decode(8),              # 09 項目コード
                 "linked_item_code": self._slice_and_decode(8),  # 09 連結項目コード
                 "name": self._slice_and_decode(50),             # 09 項目名称
-                "quantity": self._slice_and_decode(11),        # 09 数量
+                "quantity": float(self._slice_and_decode(11) or 0),  # 09 数量
                 "unit_flag": self._slice_and_decode(1),         # 09 選択単位フラグ
                 "unit_code": self._slice_and_decode(3),         # 09 選択単位コード
                 "unit_name": self._slice_and_decode(4),         # 09 選択単位名称
