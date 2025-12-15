@@ -93,7 +93,7 @@ class TelegramParser:
         order_info = {
             "doc_type": self._slice_and_decode(1),       # 07 文書種別
             "doc_id": self._slice_and_decode(30),        # 07 文書番号
-            "version": self._slice_and_decode(2),        # 07 版数
+            "version": int(self._slice_and_decode(2)),   # 07 版数
             "parent_doc_id": self._slice_and_decode(30), # 07 親文書番号
             "number": self._slice_and_decode(8),         # 07 オーダ番号
         }
