@@ -155,17 +155,17 @@ class TelegramParser:
 
         # 07 身長
         patient_profile['height'] = {
-            "value": self._slice_and_decode(11), # 09 身長値
+            "value": float(self._slice_and_decode(11) or 0), # 09 身長値
             "date": self._slice_and_decode(8),   # 09 身長計測日
         }
         # 07 体重
         patient_profile['weight'] = {
-            "value": self._slice_and_decode(11), # 09 体重値
+            "value": float(self._slice_and_decode(11) or 0), # 09 体重値
             "date": self._slice_and_decode(8),   # 09 体重計測日
         }
         # 07 体表面積 body surface area
         patient_profile['bsa'] = {
-            "value": self._slice_and_decode(11), # 09 体表面積値
+            "value": float(self._slice_and_decode(11) or 0), # 09 体表面積値
         }
 
         # 07 プロファイル情報
@@ -195,9 +195,9 @@ class TelegramParser:
             "start_date": self._slice_and_decode(14),  # 07 レジメン適用開始日
             # 07 レジメン適用時の身体情報
             "body_info": { 
-                "height": self._slice_and_decode(11), # 09 身長
-                "weight": self._slice_and_decode(11), # 09 体重
-                "bsa": self._slice_and_decode(11),    # 09 体表面積
+                "height": float(self._slice_and_decode(11) or 0), # 09 身長
+                "weight": float(self._slice_and_decode(11) or 0), # 09 体重
+                "bsa": float(self._slice_and_decode(11) or 0),    # 09 体表面積
             }
         }
 
