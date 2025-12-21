@@ -1,14 +1,31 @@
 import numpy as np
+import os
 
 class TelegramParser:
     """
-    注射オーダ依頼電文)の電文を解析するパーサー。
+    注射オーダ依頼電文の電文を解析するパーサー。
+    ファイルパス、またはバイト列(bytes)を受け取って解析する。
     """
-    def __init__(self, filepath, encoding='cp932'):
-        self.filepath = filepath
+    def __init__(self, source, encoding='cp932'):
+        """
+        Args:
+            source (str | bytes): 解析対象のファイルパス(str) または 電文バイト列(bytes)
+            encoding (str): エンコーディング (デフォルト: cp932)
+        """
         self.encoding = encoding
         self.raw_bytes = b''
         self.offset = 0
+        self.filepath = None
+
+        # 入力ソースの型判定
+        if isinstance(source, str):
+            # 文字列の場合はファイルパスとみなす
+            self.filepath = source
+        elif isinstance(source, bytes):
+            # バイト列の場合は直接データとして保持する
+            self.raw_bytes = source
+        else:
+            raise ValueError("source はファイルパス(str) または バイト列(bytes) である必要があります。")
 
     def _slice(self, num_bytes):
         """
@@ -37,9 +54,7 @@ class TelegramParser:
         return self._decode(self._slice(num_bytes))
 
     def _parse_common_part(self):
-        """
-        共通部 (64バイト) を解析 [cite: 93, 94]
-        """
+        """共通部 (64バイト) を解析"""
         common = {
             "message_type": self._slice_and_decode(2),            # 05 電文種別
             "record_continuation": self._slice_and_decode(1),     # 05 レコード継続指示
@@ -240,12 +255,13 @@ class TelegramParser:
             item_group['item_info'].append(item)
 
         content['item_group'] = item_group
-
         return content
 
     def parse(self):
         """
-        ファイルパスから電文を読み込み、解析を実行する。
+        電文を解析を実行する。
+        ファイルパスが指定されている場合はファイルを読み込み、
+        バイト列が直接渡されている場合はそれを使用する。
 
         Returns:
             dict: 解析された電文データ。
@@ -254,18 +270,20 @@ class TelegramParser:
             FileNotFoundError: ファイルが見つからない場合。
             ValueError: 解析エラーや検証エラーが発生した場合。
         """
-        try:
-            with open(self.filepath, 'rb') as f:
-                self.raw_bytes = f.read()
-        except FileNotFoundError:
-            print(f"エラー: ファイルが見つかりません: {self.filepath}")
-            raise
-        except Exception as e:
-            print(f"エラー: ファイルを読み込めません: {e}")
-            raise
+        # ファイルパス指定 かつ まだ読み込んでいない場合のみ読み込む
+        if self.filepath and not self.raw_bytes:
+            try:
+                with open(self.filepath, 'rb') as f:
+                    self.raw_bytes = f.read()
+            except FileNotFoundError:
+                print(f"エラー: ファイルが見つかりません: {self.filepath}")
+                raise
+            except Exception as e:
+                print(f"エラー: ファイルを読み込めません: {e}")
+                raise
 
         if not self.raw_bytes:
-            raise ValueError("ファイルが空です。")
+            raise ValueError("解析対象のデータが空です。")
 
         self.offset = 0 # オフセットをリセット
 
@@ -291,8 +309,8 @@ class TelegramParser:
             # (前提条件3参照: 終端チェックは省略)
             if self.offset < len(self.raw_bytes):
                 remaining = len(self.raw_bytes) - self.offset
-                print(f"警告: {remaining} バイトがファイルの終端に残っていますが、"
-                      "電文仕様に従い解析を終了しました。")
+                # API経由などの場合、ログに出すだけにする
+                # print(f"警告: {remaining} バイトがデータの終端に残っています。")
 
             # --- 5. 結合 ---
             full_telegram = {
@@ -304,5 +322,4 @@ class TelegramParser:
 
         except Exception as e:
             print(f"解析エラー: オフセット {self.offset} 付近で問題が発生しました。")
-            print(f"エラー詳細: {e}")
             raise

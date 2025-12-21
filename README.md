@@ -20,3 +20,10 @@ drug-order-inquiry/
 │   └── init/               # 初期SQLファイル置き場
 └── compose.yaml
 ```
+
+## 電文の追加
+
+### API
+```shell
+curl -X POST -H "Content-Type: application/octet-stream" --data-binary @data/test_denbun.txt http://localhost:5050/api/telegrams/receive | jq
+```
