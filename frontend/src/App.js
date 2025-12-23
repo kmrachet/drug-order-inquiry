@@ -154,15 +154,16 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedTelegram.raw_data?.content?.item_group?.item_info?.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.name}</td>
-                          <td>{item.quantity}</td>
-                          <td>{item.unit_name}</td>
-                          <td>{item.code}</td>
-                        </tr>
-                      )) || (
-                        <tr><td colSpan="4">項目なし</td></tr>
+                      {selectedTelegram.raw_data?.content?.item_group?.item_info
+                        ?.filter(item => item.attribute === 'ID1').map((item, index) => (
+                          <tr key={index}>
+                            <td>{item.name}</td>
+                            <td>{item.quantity}</td>
+                            <td>{item.unit_name}</td>
+                            <td>{item.code}</td>
+                          </tr>
+                        )) || (
+                          <tr><td colSpan="4">項目なし</td></tr>
                       )}
                     </tbody>
                   </table>
