@@ -42,6 +42,53 @@ body {
   overflow: hidden; /* コンテナ内スクロールのため */
 }
 
+/* 検索セクション */
+.search-section {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-left: 5px solid #28a745; /* アップロードと区別しやすいように色変え */
+}
+
+.search-section h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  min-width: 100px;
+}
+
+.search-form {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.input-group input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.secondary-button {
+  background-color: #6c757d;
+}
+
 /* アップロードセクション */
 .upload-section {
   background: white;

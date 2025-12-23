@@ -193,6 +193,47 @@ def upload_file():
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
 
+@app.route('/api/telegrams/search', methods=['GET'])
+def search_telegrams():
+    """
+    オーダ番号と版数で電文を検索する
+    """
+    order_number = request.args.get('order_number')
+    version = request.args.get('version')
+
+    if not order_number or not version:
+        return jsonify({"error": "Parameters (order_number, version) required"}), 400
+
+    try:
+        # DBはInteger定義なので型変換して検索
+        # 完全一致検索
+        telegrams = Telegram.query.filter_by(
+            order_number=int(order_number),
+            version=int(version)
+        ).order_by(Telegram.created_at.desc()).all()
+        
+        # 一覧用にデータを整形
+        results = []
+        for t in telegrams:
+            results.append({
+                "id": t.id_,
+                "doc_id": t.doc_id,
+                "version": t.version,
+                "patient_id": t.patient_id,
+                "patient_name": t.patient_name,
+                "order_number": t.order_number,
+                "order_date": t.order_date,
+                "created_at": t.created_at
+            })
+
+        return jsonify(results)
+    
+    except ValueError:
+        # 数値変換に失敗した場合などは空リストを返す（あるいはエラーでもよい）
+        return jsonify([]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/telegrams', methods=['GET'])
 def get_telegrams():
     """

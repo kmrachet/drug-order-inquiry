@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -8,6 +8,10 @@ function App() {
   const [selectedTelegram, setSelectedTelegram] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // 検索用State
+  const [searchParams, setSearchParams] = useState({ number: '', version: '' });
+  const versionInputRef = useRef(null);
 
   // 初回ロード時に一覧を取得
   useEffect(() => {
@@ -22,6 +26,69 @@ function App() {
     } catch (err) {
       console.error("Fetch error:", err);
       setError("データの取得に失敗しました。");
+    }
+  };
+
+  // 検索実行
+  const executeSearch = async (number, version) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // API呼び出し
+      const res = await axios.get('/api/telegrams/search', {
+        params: {
+          order_number: number,
+          version: version
+        }
+      });
+      const searchResults = res.data;
+      setTelegrams(searchResults);
+
+      // 検索結果判定
+      if (searchResults.length > 0) {
+        // 該当あり: 先頭の電文を自動選択して詳細を表示
+        handleSelectTelegram(searchResults[0].id);
+      } else {
+        // ★該当なし: 詳細画面をクリア（選択解除）
+        setSelectedTelegram(null);
+      }
+
+    } catch (err) {
+      console.error("Search error:", err);
+      setError("検索に失敗しました。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // オーダ番号入力ハンドラ
+  const handleSearchNumberChange = (e) => {
+    const val = e.target.value;
+    // 数値のみ入力可
+    if (!/^\d*$/.test(val)) return;
+
+    if (val.length <= 8) {
+      setSearchParams(prev => ({ ...prev, number: val }));
+      
+      // 8桁入力されたら版数へフォーカス移動
+      if (val.length === 8) {
+        versionInputRef.current.focus();
+      }
+    }
+  };
+
+  // 版数入力ハンドラ
+  const handleSearchVersionChange = (e) => {
+    const val = e.target.value;
+    if (!/^\d*$/.test(val)) return;
+
+    if (val.length <= 2) {
+      setSearchParams(prev => ({ ...prev, version: val }));
+
+      // 2桁入力されたら自動検索実行
+      if (val.length === 2) {
+        executeSearch(searchParams.number, val);
+      }
     }
   };
 
@@ -89,6 +156,45 @@ function App() {
         {/* エラー表示 */}
         {error && <div className="error-message">{error}</div>}
 
+        {/* 検索セクション */}
+        <section className="search-section">
+          <h2>電文検索</h2>
+          <div className="search-form">
+            <div className="input-group">
+              <label>オーダ番号</label>
+              <input
+                type="text"
+                placeholder="8桁"
+                value={searchParams.number}
+                onChange={handleSearchNumberChange}
+                disabled={loading}
+              />
+            </div>
+            <div className="input-group">
+              <label>版数</label>
+              <input
+                type="text"
+                placeholder="2桁"
+                value={searchParams.version}
+                onChange={handleSearchVersionChange}
+                disabled={loading}
+                ref={versionInputRef}
+              />
+            </div>
+            <button 
+              type="button" 
+              onClick={() => {
+                setSearchParams({number: '', version: ''});
+                fetchTelegrams();
+                setSelectedTelegram(null); // クリア時も詳細をリセット
+              }}
+              className="secondary-button"
+            >
+              クリア
+            </button>
+          </div>
+        </section>
+
         {/* 1. ファイルアップロードセクション */}
         <section className="upload-section">
           <h2>新規電文取込</h2>
@@ -108,9 +214,9 @@ function App() {
         <div className="content-area">
           {/* 2. 左側: 電文リスト */}
           <section className="list-section">
-            <h2>受信履歴</h2>
+            <h2>受信履歴 / 検索結果</h2>
             {telegrams.length === 0 ? (
-              <p>データがありません</p>
+              <p style={{padding: '20px', color: '#666'}}>データがありません</p>
             ) : (
               <ul className="telegram-list">
                 {telegrams.map((t) => (
@@ -124,8 +230,8 @@ function App() {
                       <span className="patient-id">ID: {t.patient_id}</span>
                     </div>
                     <div className="list-item-sub">
+                      No: {t.order_number} (v{t.version})<br/>
                       オーダ日: {t.order_date || '-'}<br/>
-                      取込: {formatDate(t.created_at)}
                     </div>
                   </li>
                 ))}
@@ -232,7 +338,6 @@ function App() {
                     </div>
                     <div className="info-item">
                       <label>JSON</label>
-                      {/* JSON表示のみ、詳細を隠してボタンで展開しても良いかも */}
                       <pre>{JSON.stringify(selectedTelegram.raw_data, null, 2)}</pre>
                     </div> 
                   </div>
