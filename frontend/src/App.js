@@ -11,6 +11,8 @@ function App() {
 
   // 検索用State
   const [searchParams, setSearchParams] = useState({ number: '', version: '' });
+  // オーダ番号入力欄への参照を追加
+  const numberInputRef = useRef(null);
   const versionInputRef = useRef(null);
 
   // 初回ロード時に一覧を取得
@@ -168,6 +170,7 @@ function App() {
                 value={searchParams.number}
                 onChange={handleSearchNumberChange}
                 disabled={loading}
+                ref={numberInputRef}
               />
             </div>
             <div className="input-group">
@@ -187,6 +190,10 @@ function App() {
                 setSearchParams({number: '', version: ''});
                 fetchTelegrams();
                 setSelectedTelegram(null); // クリア時も詳細をリセット
+                // クリア時にオーダ番号へフォーカス
+                if (numberInputRef.current) {
+                  numberInputRef.current.focus();
+                }
               }}
               className="secondary-button"
             >
